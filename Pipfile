@@ -14,6 +14,9 @@ matplotlib = "*"
 opencv-python = "*"
 tqdm = "*"
 PyYAML = "*"
+requests = "*"
+flask = "*"
+line-bot-sdk = "*"
 
 [dev-packages]
 codecov = "*"
