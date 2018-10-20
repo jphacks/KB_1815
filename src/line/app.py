@@ -20,11 +20,10 @@ from linebot.models import (
 app = Flask(__name__)
 
 hatsuwa_flag = False
+channel_secret = os.getenv('channel_secret', None)
+channel_access_token = os.getenv('channel_acces_token', None)
+admin_ID = os.getenv('admin_ID',None)
 
-channel_secret = os.environ["channel_secret"]
-channel_access_token = os.environ["channel_acces_token"]
-admin_ID = os.environ['admin_ID']
-print(admin_ID)
 line_bot_api = LineBotApi(channel_access_token)
 handler = WebhookHandler(channel_secret)
 
@@ -33,8 +32,25 @@ def button_on():
     #写真を撮る
     #スピーカーが誰か尋ねる
     #マイクで音声から文字起こし
-    postimage("https://shop.r10s.jp/book/cabinet/4798/4900459524798_2.jpg",admin_ID)
-    bottan_on("佐川男子") #宿主に電話対応するか尋ねる
+    snap_shot(admin_ID)
+
+@app.route("/who", methods=['POST'])
+def who(body):
+    print(body)
+    #notification(body) 
+    return()
+
+@app.route("/reserve")
+def redirect_to_pay():
+    data = {"product_name": "LINE Pay Demo product",
+            'amount':'100',
+            'currency':'JPY',
+            'order_id':uuid.uuid4().hex,
+            # optional values can be set. see https://pay.line.me/file/guidebook/technicallinking/LINE_Pay_Integration_Guide_for_Merchant-v1.1.2-JP.pdf
+            'productImageUrl':'https://{}{}'.format(request.environ['HTTP_HOST'], '/static/item_image.png')
+            }
+    transaction_info = pay.reserve(**data)
+    return redirect(transaction_info['info']['paymentUrl']['web'])
 
 
 @app.route("/callback", methods=['POST'])
@@ -56,6 +72,14 @@ def callback():
                 
             elif True in (x in text  for x in ["施錠","閉"]):
                     ask_close_key()
+            elif (text=="対話スイッチ"):
+                    talkmode_switch()
+            
+            elif (text=="スナップショット"):
+                    print(snap_shot(ID))
+            
+            elif (text=="決済"):
+                post2one('https://733bc45e.ngrok.io/reserve',ID)
             
             elif hatsuwa_flag:
                 if (text=="対話モードオフ"):
@@ -69,7 +93,7 @@ def callback():
                     #マイクで音声から文字起こし
                     postimage("https://shop.r10s.jp/book/cabinet/4798/4900459524798_2.jpg",ID)
                     #postimage("https://80f71b17.ngrok.io/image.jpg",ID)
-                    print(bottan_on("佐川男子")) #宿主に電話対応するか尋ねる
+                    print(notification("佐川男子")) #宿主に電話対応するか尋ねる
                 elif (text=="対話モードオフ"):
                     talkmode_swith()
                 else:
@@ -262,7 +286,7 @@ def post2others(post_text, ID):
 
     requests.post(url, data=json.dumps(data), headers=headers)
 
-def bottan_on(name,ID=admin_ID):
+def notification(name,ID=admin_ID):
     url = 'https://api.line.me/v2/bot/message/push'
     data = {
         "to":ID,
@@ -428,11 +452,11 @@ def ask_open_key():
     requests.post(url, data=json.dumps(data), headers=headers)
 
 def open_key():
-    response = requests.post('http://ea158e60.ngrok.io/open', )
+    response = requests.post('https://efca03ca.ngrok.io/open', )
     return(response)
 
 def close_key():
-    response = requests.post('http://ea158e60.ngrok.io/close', )
+    response = requests.post('https://efca03ca.ngrok.io/close', )
     return(response)
 
 def send_first_message(ID):
@@ -586,6 +610,15 @@ def template_response(ID):
         'Authorization': 'Bearer ' + channel_access_token 
     }
     requests.post(url, data=json.dumps(data), headers=headers)
+
+def snap_shot(ID):
+    response = requests.get('https://be52ce0d.ngrok.io/snapshot/')
+    postimage('https://f1117ee8.ngrok.io/image.jpg',ID)
+    return(response)
+
+def LINE_PAY():
+    response = requests.get('https://733bc45e.ngrok.io/reserve')
+    return(response)
 
 if __name__ == "__main__":  
     port = int(os.getenv('PORT', 5000))
