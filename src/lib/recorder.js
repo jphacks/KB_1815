@@ -11,13 +11,14 @@ function record(filename) {
 
 
     recorder.start({
-        sampleRateHertz: sampleRateHertz,
+        sampleRateHertz: sampleRate,
+        encoding: encoding,
         threshold: 0.5,
         silence: '1.0', // 終了させる無音間隔(sec)
         verbose: true,
         recordProgram: 'rec'
     })
-        .pipe(recognizeStream)
+        .pipe(file)
         .on('error', function () {
             console.log(error);
         });
