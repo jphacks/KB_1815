@@ -1,0 +1,27 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[scripts]
+test = "python -m pytest -vv"
+jupyter = "jupyter notebook"
+get_coverage = "python -m pytest --cov=./"
+#codecov = 'codecov --token=""'
+
+[packages]
+matplotlib = "*"
+opencv-python = "*"
+tqdm = "*"
+PyYAML = "*"
+
+[dev-packages]
+codecov = "*"
+flake8 = "*"
+mypy = "*"
+jupyter = "*"
+pytest = "*"
+pytest-cov = "*"
+
+[requires]
+python_version = "3.6.5"
