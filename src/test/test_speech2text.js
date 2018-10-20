@@ -1,10 +1,10 @@
 const fs = require('fs');
-const test = require('./speech2text.js')
+const test = require('../lib/speech2text.js')
 
 // The name of the audio file to transcribe
-const fileName = '../resources/senbeijiru.wav';
+const fileName = '../../resources/senbeijiru.wav';
 const encoding = 'LINEAR16';
-const sampleRateHertz = 16000;
+const sampleRateHertz = 44100;
 const languageCode = 'ja-JP';
 
 // Reads a local audio file and converts it to base64
@@ -17,7 +17,7 @@ const audio = {
 };
 const config = {
     encoding: encoding,
-    // sampleRateHertz: sampleRateHertz,
+    sampleRateHertz: sampleRateHertz,
     languageCode: languageCode,
 };
 const request = {
