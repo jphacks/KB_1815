@@ -1,7 +1,7 @@
-##機能
+## 機能
 /snapshot apiをたたくとカメラで写真を撮り，写真をwebサーバ上に保存
 
-##使い方
+## 使い方
 - send_photo以下をwebサーバ上に置く
 (例：apahce2を入れて/var/www/html/以下に置く)
 
