@@ -10,6 +10,8 @@
     "dotenv": "^6.0.0",
     "ejs": "^2.6.1",
     "express": "^4.16.3",
+    "node-aplay": "^1.0.3",
+    "node-record-lpcm16": "^0.3.1",
     "raspi": "^5.0.2",
     "raspi-gpio": "^6.0.0",
     "raspi-pwm": "^6.0.0",
