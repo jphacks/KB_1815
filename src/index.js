@@ -12,12 +12,12 @@ app.get('/', (req, res, next) => {
 })
 
 app.post('/open', (req, res, next) => {
-  led.write(0.07);
+  led.write(0.08);
   res.send('opened');
 })
 
 app.post('/close', (req, res, next) => {
-  led.write(0.11);
+  led.write(0.13);
   res.send('closed')
 })
  

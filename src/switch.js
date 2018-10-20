@@ -3,6 +3,7 @@ const request = require('request');
 var GPIO_DIR = '/sys/class/gpio';
 var GPIO_PIN_DIR = GPIO_DIR + '/gpio';
 var PIN_LIST = [];
+const Sound = require('node-aplay');
 
 //使用したGPIOポートの開放
 var cleanUp = function() {
@@ -61,6 +62,7 @@ try {
  			count += 1;
                         setOutput(8, '1');
 			if (count === 1) {
+			  new Sound('../resources/askyou.wav').play();
  			  request.post('https://609e058f.ngrok.io/button_on', function (error, response, body) {
                           console.log('ok')})
 			}
