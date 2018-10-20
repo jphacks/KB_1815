@@ -10,7 +10,7 @@ const request = {
     // Select the language and SSML Voice Gender (optional)
     voice: { languageCode: 'ja-JP', ssmlGender: 'NEUTRAL' },
     // Select the type of audio encoding
-    audioConfig: { audioEncoding: 'MP3' },
+    audioConfig: { audioEncoding: 'LINEAR16' },
 };
 
-test.text2speech(request, '../../resources/askyou.mp3')
+test.text2speech(request, '../../resources/askyou.wav');
