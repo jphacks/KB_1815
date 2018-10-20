@@ -1,4 +1,6 @@
-import os
+import json
+import shelve
+import uuid
 from flask import Flask, request, abort, render_template, redirect
 import requests
 from flask_bootstrap import Bootstrap
@@ -6,9 +8,6 @@ from flask_bootstrap import Bootstrap
 app = Flask(__name__, static_folder='static')
 bootstrap = Bootstrap(app)
 
-import json
-import shelve
-import uuid
 
 class LinePay(object):
 
@@ -24,22 +23,26 @@ class LinePay(object):
         url = '{}{}{}'.format(self.DEFAULT_ENDPOINT, self.VERSION, '/payments/request')
         data = {**
                 {
-                    'productName':product_name,
-                    'amount':amount,
-                    'currency':currency,
-                    'confirmUrl':'https://{}{}'.format(request.environ['HTTP_HOST'], self.redirect_url),
-                    'orderId':order_id,
+                    'productName': product_name,
+                    'amount': amount,
+                    'currency': currency,
+                    'confirmUrl': 'https://{}{}'.format(request.environ['HTTP_HOST'], self.redirect_url),
+                    'orderId': order_id,
                 },
                 **kwargs}
         headers = {'Content-Type': 'application/json',
-                   'X-LINE-ChannelId':self.channel_id,
-                   'X-LINE-ChannelSecret':self.channel_secret}
+                   'X-LINE-ChannelId': self.channel_id,
+                   'X-LINE-ChannelSecret': self.channel_secret}
         response = requests.post(url, headers=headers, data=json.dumps(data).encode("utf-8"))
 
         if int(json.loads(response.text)['returnCode']) == 0:
             with shelve.open('store') as store:
                 # just for prototyping
-                store[str(json.loads(response.text)['info']['transactionId'])] = {'productName': product_name, 'amount': amount, 'currency': currency}
+                store[str(json.loads(response.text)['info']['transactionId'])] = {
+                    'productName': product_name,
+                    'amount': amount,
+                    'currency': currency
+                }
             return json.loads(response.text)
 
         else:
@@ -55,19 +58,20 @@ class LinePay(object):
 
         url = '{}{}{}'.format(self.DEFAULT_ENDPOINT, self.VERSION, '/payments/{}/confirm'.format(transaction_id))
         data = {
-                'amount':transaction_info['amount'],
-                'currency':transaction_info['currency'],
-                }
+            'amount': transaction_info['amount'],
+            'currency': transaction_info['currency'],
+        }
         headers = {'Content-Type': 'application/json',
-                   'X-LINE-ChannelId':self.channel_id,
-                   'X-LINE-ChannelSecret':self.channel_secret}
-        response = requests.post(url, headers=headers, data=json.dumps(data).encode("utf-8"))
+                   'X-LINE-ChannelId': self.channel_id,
+                   'X-LINE-ChannelSecret': self.channel_secret}
+        # response = requests.post(url, headers=headers, data=json.dumps(data).encode("utf-8"))
         print(url)
         print(data)
         print(headers)
         return transaction_info
 
 # get it in https://pay.line.me/jp/developers/techsupport/sandbox/creation?locale=ja_JP
+
 
 chennel_id = '1616116834'
 channel_secret = '8350bc210dfdeb04b9d1488a683b98cc'
@@ -87,13 +91,15 @@ def render_index():
 
 @app.route("/reserve")
 def redirect_to_pay():
-    data = {"product_name": "限界集落大学院の歩き方",
-            'amount':'4800',
-            'currency':'JPY',
-            'order_id':uuid.uuid4().hex,
-            # optional values can be set. see https://pay.line.me/file/guidebook/technicallinking/LINE_Pay_Integration_Guide_for_Merchant-v1.1.2-JP.pdf
-            'productImageUrl':'https://{}{}'.format(request.environ['HTTP_HOST'], 'https://f1117ee8.ngrok.io/mushsama.png')
-            }
+    data = {
+        "product_name": "限界集落大学院の歩き方",
+        'amount': '4800',
+        'currency': 'JPY',
+        'order_id': uuid.uuid4().hex,
+        # optional values can be set.
+        # see https://pay.line.me/file/guidebook/technicallinking/LINE_Pay_Integration_Guide_for_Merchant-v1.1.2-JP.pdf
+        'productImageUrl': 'https://{}{}'.format(request.environ['HTTP_HOST'], 'https://f1117ee8.ngrok.io/mushsama.png')
+    }
     transaction_info = pay.reserve(**data)
     print(transaction_info['info']['paymentUrl']['web'])
     return redirect(transaction_info['info']['paymentUrl']['web'])
@@ -103,10 +109,12 @@ def callback_from_pay():
     transaction_info = pay.confirm(request.args.get('transactionId'))
     return render_template('purchased.html', **transaction_info)
 
+
 app.errorhandler(400)
 def handler_error_400(error):
     return error
 
+
 if __name__ == '__main__':
-    app.debug = True;
+    app.debug = True
     app.run(host='0.0.0.0')
