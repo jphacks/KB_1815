@@ -24,7 +24,7 @@ function text2speech(request, writeFile) {
                 console.error('ERROR:', err);
                 return;
             }
-            console.log('Audio content written to file: output.mp3');
+            console.log(`Audio content written to file: ${writeFile}`);
         });
     });
 }
