@@ -1,0 +1,1 @@
+fswebcam image.jpg
