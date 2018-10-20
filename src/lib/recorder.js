@@ -24,4 +24,4 @@ function record(filename) {
         });
 }
 
-record(filename)
+exports.record = record

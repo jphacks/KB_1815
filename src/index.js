@@ -3,7 +3,7 @@ const app = express()
 const portNo = 3000
 const raspi = require('raspi');
 const pwm = require('raspi-pwm');
-
+const record = require('./lib/recorder.js')
 
 app.set('view engine', 'ejs');
 
@@ -27,3 +27,5 @@ raspi.init(() => {
   console.log('起動しました', `http://192.168.100.125:${portNo}`)
   })
 });
+
+record.record("delivery.wav")
