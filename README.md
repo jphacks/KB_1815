@@ -62,10 +62,11 @@
 
 * Line Messaging API
 * Line Pay API
-* Google Cloud Speech to Text API
+* Watson API 
 * Google Cloud Text to Speech API
 
 #### フレームワーク・ライブラリ・モジュール
+* Node.js
 * Express
 * Flask
 * opencv
@@ -81,12 +82,9 @@
 * カラーボックス
 
 ### 研究内容・事前開発プロダクト（任意）
-ご自身やチームの研究内容や、事前に持ち込みをしたプロダクトがある場合は、こちらに実績なども含め記載をして下さい。
-
-*
-
+特になし
 
 ### 独自開発技術（Hack Dayで開発したもの）
 #### 2日間に開発した独自の機能・技術
-* 独自で開発したものの内容をこちらに記載してください
-* 特に力を入れた部分をファイルリンク、またはcommit_idを記載してください（任意）
+* 2日間でアイディアから全て作成しました！
+* 郵便物が封筒やハガキなど重要な書類の場合，通知する仕組み(./src/letter_classifier/pic2type_letter.py) 
