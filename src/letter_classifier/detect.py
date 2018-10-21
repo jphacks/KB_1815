@@ -3,12 +3,14 @@ from argparse import ArgumentParser
 from typing import Optional, Tuple
 import numpy as np
 import cv2
+import requests
 
 from pic2type_letter import predict_mail_type
 from pic2type_letter import SIZE_EXTRACT, SIZE_RESIZE, STDDEV_THRESHOLD, IMPORTANT_MAIL
 
 DIFF_THRESHOLD = 20
 DEFFAULT_SLEEP = 1
+END_POINT = 'https://uketori.herokuapp.com/kenti'
 
 def detect_diff(
         img_before: 'np.ndarray',
@@ -41,7 +43,7 @@ def main(
         center_position: Tuple=None,
         gray_scale: bool=True,
 ) -> None:
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
     frame = None
 
     while True:
@@ -64,9 +66,7 @@ def main(
             )
             # replace print statement to http requests.
             if importance == IMPORTANT_MAIL:
-                pass
-
-            # print(importance)
+                requests.post(END_POINT)
 
         time.sleep(DEFFAULT_SLEEP)
 
