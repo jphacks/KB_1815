@@ -6,11 +6,7 @@ const textToSpeech = require('@google-cloud/text-to-speech');
 const client = new textToSpeech.TextToSpeechClient();
 
 // Performs the Text-to-Speech request
-// request = {
-//      input: {text: text},
-//      voice: { languageCode: 'ja-JP', ssmlGender: 'NEUTRAL' },
-//      audioConfig: { audioEncoding: 'MP3 },
-//}
+// fileName: xxx.wav
 function text2speech(text, fileName) {
     const request = {
         input: { text: text },

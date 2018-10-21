@@ -1,22 +1,22 @@
 // Imports the Google Cloud client library
+const fs = require('fs');
 const speech = require('@google-cloud/speech');
+
 const client = new speech.SpeechClient();
 
 // parameter for .wav format
+// 先にwavファイルからHeaderを取り出す．
+// formatごとにパラメータを変化させる．
 const encoding = 'LINEAR16';
-const sampleRateHertz = 44100;
+const sampleRateHertz = 22050;
 const languageCode = 'ja-JP';
 
 // Detects speech in the audio file
-// request = {
-//      audio: audio={
-//          content: audio binary data
-//      },
-//      config: config
-// }
-function speech2text(filename) {
+// fileName: xxx.wav
+// writeFileName: xxx.txt
+function speech2text(fileName, writeFileName) {
     // Reads a local audio file and converts it to base64
-    const file = fs.readFileSync(filename);
+    const file = fs.readFileSync(fileName);
     const audioBytes = file.toString('base64');
 
     // The audio file's encoding, sample rate in hertz, and BCP-47 language code
@@ -39,6 +39,13 @@ function speech2text(filename) {
             const transcription = response.results
                 .map(result => result.alternatives[0].transcript)
                 .join('\n');
+            fs.writeFile(writeFileName, transcription, err => {
+                if (err) {
+                    console.error('ERROR:', err);
+                    return;
+                }
+                console.log(`Text content written to file: ${writeFileName}`);
+            });
             console.log(`Transcription: ${transcription}`);
         })
         .catch(err => {
