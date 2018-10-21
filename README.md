@@ -59,7 +59,7 @@
 ## 開発内容・開発技術
 ### 活用した技術
 
-[!システム構成](docs/system_detail.png)
+![システム構成](docs/system_detail.png)
 
 #### API・データ
 
