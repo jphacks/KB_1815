@@ -1,0 +1,16 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+  <body>
+    <h1>generalize sentence</h1>
+
+    <form class="" action="/" method="post">
+      <input type="text" name="sentence">
+      <input type="submit" name="" value="send">
+    </form>
+    {% if source and target %}
+    <p>style: {{source}}<p>
+    <p>generalized: {{target}}<p>
+    {% endif %}
+  </body>
+</html>
