@@ -14,6 +14,7 @@ function text2speech(text, fileName) {
         voice: { languageCode: 'ja-JP', ssmlGender: 'NEUTRAL' },
         // Select the type of audio encoding
         audioConfig: { audioEncoding: 'LINEAR16' },
+        sampleRateHertz: 44100
     };
     client.synthesizeSpeech(request, (err, response) => {
         if (err) {
