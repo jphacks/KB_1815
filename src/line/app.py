@@ -3,27 +3,43 @@ import requests
 import json
 from flask import Flask, request
 from linebot import (
-    LineBotApi, WebhookHandler
+    LineBotApi,
+    WebhookHandler
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage,
+    MessageEvent,
+    TextMessage,
+    TextSendMessage,
 )
+
+from util import config_loader
+
 app = Flask(__name__)
 
 hatsuwa_flag = False
-channel_secret = os.getenv('channel_secret', None)
-channel_access_token = os.getenv('channel_acces_token', None)
-admin_ID = os.getenv('admin_ID', None)
+CHANNEL_SECRET = os.getenv('CHANNEL_SECRET', None)
+CHANNEL_ACCESS_TOKEN = os.getenv('channel_acces_token', None)
+ADMIN_ID = os.getenv('ADMIN_ID', None)
 
-line_bot_api = LineBotApi(channel_access_token)
-handler = WebhookHandler(channel_secret)
+line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
+handler = WebhookHandler(CHANNEL_SECRET)
+
+ENDPOINT = config_loader.load('./config/endpoint.yml')
+IMAGE_FILES = config_loader.load('./config/images.yml')
+
+
+HEADER = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer%s' % CHANNEL_ACCESS_TOKEN
+}
+
 
 @app.route("/button_on", methods=['POST'])
 def button_on():
     # 写真を撮る
     # スピーカーが誰か尋ねる
     # マイクで音声から文字起こし
-    snap_shot(admin_ID)
+    snap_shot(ADMIN_ID)
 
 @app.route("/who", methods=['POST'])
 def who(body):
@@ -34,10 +50,10 @@ def who(body):
 @app.route("/callback", methods=['POST'])
 def callback():
     global hatsuwa_flag
-    body = request.get_json()
-    body2 = body.get("events")
+    response = request.get_json()
+    events = response.get("events")
 
-    for i in body2:
+    for i in events:
         ID = i.get("source")["userId"]
         types = i.get("type")
 
@@ -69,8 +85,7 @@ def callback():
                     # 写真を撮る
                     # スピーカーが誰か尋ねる
                     # マイクで音声から文字起こし
-                    postimage("https://shop.r10s.jp/book/cabinet/4798/4900459524798_2.jpg", ID)
-                    # postimage("https://80f71b17.ngrok.io/image.jpg",ID)
+                    postimage(IMAGE_FILES['HORN'], ID)
                     print(notification("佐川男子"))  # 宿主に電話対応するか尋ねる
                 elif (text == "対話モードオフ"):
                     talkmode_switch()
@@ -146,7 +161,6 @@ def beacon_action(action, ID):
         None
 
 def poststamp(a, b, ID):
-    url = 'https://api.line.me/v2/bot/message/push'
     data = {
         "to": ID,
         "messages": [
@@ -158,59 +172,52 @@ def poststamp(a, b, ID):
         ]
     }
 
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + channel_access_token
-    }
-
-    requests.post(url, data=json.dumps(data), headers=headers)
+    requests.post(
+        ENDPOINT['PUSH_URL'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
 
 def okaeri(ID):
-    post_image = "https://matsuko.link/img/okaeri.jpg"
-    url = 'https://api.line.me/v2/bot/message/push'
     data = {
         "to": ID,
         "messages": [
             {
                 "type": "image",
-                "originalContentUrl": post_image,
-                "previewImageUrl": post_image,
+                "originalContentUrl": IMAGE_FILES['OKAERI'],
+                "previewImageUrl": IMAGE_FILES['OKAERI'],
             }
         ]
     }
 
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + channel_access_token
-    }
+    requests.post(
+        ENDPOINT['PUSH_URL'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
 
-    requests.post(url, data=json.dumps(data), headers=headers)
-
-def postimage(post_image, ID):
-    url = 'https://api.line.me/v2/bot/message/push'
+def postimage(image_url, ID):
     data = {
         "to": ID,
         "messages": [
             {
                 "type": "image",
-                "originalContentUrl": post_image,
-                "previewImageUrl": post_image,
+                "originalContentUrl": image_url,
+                "previewImageUrl": image_url,
             }
         ]
     }
 
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + channel_access_token
-    }
-
-    requests.post(url, data=json.dumps(data), headers=headers)
+    requests.post(
+        ENDPOINT['POSTIMAGE'],
+        data=json.dumps(data),
+        headers=HEADER,
+    )
 
 def post2admin(post_text):
-    print(admin_ID)
-    url = 'https://api.line.me/v2/bot/message/push'
+    print(ADMIN_ID)
     data = {
-        "to": admin_ID,
+        "to": ADMIN_ID,
         "messages": [
             {
                 "type": "text",
@@ -218,15 +225,14 @@ def post2admin(post_text):
             }
         ]
     }
-    print(post_text)
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + channel_access_token
-    }
-    requests.post(url, data=json.dumps(data), headers=headers)
+
+    requests.post(
+        ENDPOINT['PUSH_URL'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
 
 def post2one(post_text, ID):
-    url = 'https://api.line.me/v2/bot/message/push'
     data = {
         "to": ID,
         "messages": [
@@ -236,15 +242,14 @@ def post2one(post_text, ID):
             }
         ]
     }
-    print(post_text)
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + channel_access_token
-    }
-    requests.post(url, data=json.dumps(data), headers=headers)
+
+    requests.post(
+        ENDPOINT['POST2ONE'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
 
 def post2others(post_text, ID):
-    url = 'https://api.line.me/v2/bot/message/push'
     data = {
         "to": ID,
         "messages": [
@@ -255,17 +260,13 @@ def post2others(post_text, ID):
         ]
     }
 
-    print(post_text)
+    requests.post(
+        ENDPOINT['POST2OTHERS'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
 
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + channel_access_token
-    }
-
-    requests.post(url, data=json.dumps(data), headers=headers)
-
-def notification(name, ID=admin_ID):
-    url = 'https://api.line.me/v2/bot/message/push'
+def notification(name, ID=ADMIN_ID):
     data = {
         "to": ID,
         "messages": [
@@ -291,17 +292,17 @@ def notification(name, ID=admin_ID):
             }
         ]
     }
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + channel_access_token
-    }
-    requests.post(url, data=json.dumps(data), headers=headers)
+
+    requests.post(
+        ENDPOINT['PUSH_URL'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
 
 
 def ask_close_key():
-    url = 'https://api.line.me/v2/bot/message/push'
     data = {
-        "to": admin_ID,
+        "to": ADMIN_ID,
         "messages": [
             {
                 "type": "template",
@@ -325,16 +326,16 @@ def ask_close_key():
             }
         ]
     }
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + channel_access_token
-    }
-    requests.post(url, data=json.dumps(data), headers=headers)
+
+    requests.post(
+        ENDPOINT['PUSH_URL'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
 
 def talkmode_switch():
-    url = 'https://api.line.me/v2/bot/message/push'
     data = {
-        "to": admin_ID,
+        "to": ADMIN_ID,
         "messages": [
             {
                 "type": "template",
@@ -358,16 +359,16 @@ def talkmode_switch():
             }
         ]
     }
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + channel_access_token
-    }
-    requests.post(url, data=json.dumps(data), headers=headers)
+
+    requests.post(
+        ENDPOINT['PUSH_URL'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
 
 def ask_talkmode():
-    url = 'https://api.line.me/v2/bot/message/push'
     data = {
-        "to": admin_ID,
+        "to": ADMIN_ID,
         "messages": [
             {
                 "type": "template",
@@ -391,15 +392,16 @@ def ask_talkmode():
             }
         ]
     }
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + channel_access_token
-    }
-    requests.post(url, data=json.dumps(data), headers=headers)
+
+    requests.post(
+        ENDPOINT['PUSH_URL'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
+
 def ask_open_key():
-    url = 'https://api.line.me/v2/bot/message/push'
     data = {
-        "to": admin_ID,
+        "to": ADMIN_ID,
         "messages": [
             {
                 "type": "template",
@@ -423,22 +425,24 @@ def ask_open_key():
             }
         ]
     }
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + channel_access_token
-    }
-    requests.post(url, data=json.dumps(data), headers=headers)
+
+    requests.post(
+        ENDPOINT['PUSH_URL'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
 
 def open_key():
-    response = requests.post('https://efca03ca.ngrok.io/open', )
+    response = requests.post(ENDPOINT['OPEN_KEY'])
+
     return(response)
 
 def close_key():
-    response = requests.post('https://efca03ca.ngrok.io/close', )
+    response = requests.post(ENDPOINT['OPEN_KEY'])
+
     return(response)
 
 def send_first_message(ID):
-    url = 'https://api.line.me/v2/bot/message/push'
     data = {
         "to": ID,
         "messages": [
@@ -457,25 +461,25 @@ def send_first_message(ID):
                         {
                             "type": "postback",
                             "label": "ママ",
-                            "data": ID+":ママ",
+                            "data": "%s:ママ" % ID,
                             "text": "ママだよ"
                         },
                         {
                             "type": "postback",
                             "label": "パパ",
-                            "data": ID+":パパ",
+                            "data": "%s:パパ" % ID,
                             "text": "パパだよ"
                         },
                         {
                             "type": "postback",
                             "label": "太郎",
-                            "data": ID+":太郎",
+                            "data": "%s:太郎" % ID,
                             "text": "太郎だよ"
                         },
                         {
                             "type": "postback",
                             "label": "花子",
-                            "data": ID+":花子",
+                            "data": "%s:花子" % ID,
                             "text": "花子だよ"
                         }
                     ]
@@ -483,15 +487,15 @@ def send_first_message(ID):
             }
         ]
     }
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + channel_access_token
-    }
-    requests.post(url, data=json.dumps(data), headers=headers)
+
+    requests.post(
+        ENDPOINT['PUSH_URL'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
 
 
 def template_response(ID):
-    url = 'https://api.line.me/v2/bot/message/push'
     data = {
         "to": ID,
         "messages": [
@@ -502,7 +506,7 @@ def template_response(ID):
                     "type": "carousel",
                     "columns": [
                         {
-                            "thumbnailImageUrl": "https://example.com/bot/images/item1.jpg",
+                            "thumbnailImageUrl": IMAGE_FILES['TEMPLATE_RESPONSE'],
                             "imageBackgroundColor": "#FFFFFF",
                             "title": "質問",
                             "text": "訪問者に質問します",
@@ -583,19 +587,20 @@ def template_response(ID):
             }
         ]
     }
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + channel_access_token
-    }
-    requests.post(url, data=json.dumps(data), headers=headers)
+
+    requests.post(
+        ENDPOINT['PUSH_URL'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
 
 def snap_shot(ID):
-    response = requests.get('https://be52ce0d.ngrok.io/snapshot/')
-    postimage('https://f1117ee8.ngrok.io/image.jpg', ID)
+    response = requests.get(ENDPOINT['SNAP_SHOT'])
+    postimage(IMAGE_FILES['SNAP_SHOT'], ID)
     return(response)
 
 def LINE_PAY():
-    response = requests.get('https://733bc45e.ngrok.io/reserve')
+    response = requests.get(ENDPOINT['LINE_PAY'])
     return(response)
 
 

@@ -1,0 +1,7 @@
+SNAP_SHOT: 'hogehoge'
+LINE_PAY: 'fugafuga'
+POST2ONE: 'hogehoge'
+POST2OTHERS: 'piyopiyp'
+POSTIMAGE: 'fugafuga'
+PUSH_URL: 'https://api.line.me/v2/bot/message/push'
+
