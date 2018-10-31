@@ -4,4 +4,5 @@ POST2ONE: 'hogehoge'
 POST2OTHERS: 'piyopiyp'
 POSTIMAGE: 'fugafuga'
 PUSH_URL: 'https://api.line.me/v2/bot/message/push'
-
+OPEN_KEY: 'hogehoge'
+CLOSE_KEY: 'piyopiyo'
