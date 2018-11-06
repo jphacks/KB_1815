@@ -4,7 +4,6 @@ const app = express()
 const portNo = 3000
 const raspi = require('raspi');
 const pwm = require('raspi-pwm');
-//const record = require('./lib/recorder.js')
 require('date-utils');
 const childProcess = require('child_process');
 
@@ -64,6 +63,10 @@ app.post('/sound', (req, res, next) => {
 });
 
 })
+
+app.get('/call', (req, res, next) => {
+  childProcess.exec('mpg321 ./public/resources/call.mp3')
+})
  
 raspi.init(() => {
   led = new pwm.PWM('GPIO18');
@@ -72,4 +75,3 @@ raspi.init(() => {
   })
 });
 
-//record.record("delivery.wav")
