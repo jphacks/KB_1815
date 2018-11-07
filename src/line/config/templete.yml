@@ -1,0 +1,8 @@
+COMPLETE :
+        LEN : 2
+        TITLE : '荷物の受け取りが完了しました。施錠しますか？'
+        LABEL1 : 'はい'
+        DATA1 : 'close key'
+        LABEL2: 'いいえ'
+        DATA2: 'no'
+        

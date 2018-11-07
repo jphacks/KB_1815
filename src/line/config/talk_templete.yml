@@ -1,0 +1,49 @@
+MESSAGE_LEN : 4
+M1 : 
+        LEN : 2
+        TITLE : '質問'
+        DESCRIPTION : '訪問者に質問します'
+        TYPE1 :
+                TEXT : '用件を訪ねる'
+                DATA : 'ask_youken'
+                RET : '用件を訪ねますね、少々お待ちください'
+        TYPE2 :
+                TEXT : '誰への用事か尋ねる'
+                DATA : 'ask_who'
+                RET : '誰への用事か訪ねますね、少々お待ちください'
+M2 : 
+        LEN : 2
+        TITLE : '情報を貰う'
+        DESCRIPTION : '宅配便から情報を送ってもらおう！'
+        TYPE1 :
+                TEXT : 'QRを送ってもらう'
+                DATA : 'get_QR'
+                RET : 'QRコードを送ってもらうようにお願いします、少々お待ちください'
+        TYPE2 :
+                TEXT : '荷物の情報をもらう'
+                DATA : 'get_info'
+                RET : '荷物の情報を送ってもらうようにお願いします、少々お待ちください'
+M3 : 
+        LEN : 2
+        TITLE : '終了を伝える'
+        DESCRIPTION : '終わったことを伝えるよ'
+        TYPE1 :
+                TEXT : '支払い完了を伝える'
+                DATA : 'complete_pay'
+                RET : '支払いが完了したことをお伝えします、少々お待ちください'
+        TYPE2 :
+                TEXT : '荷物情報の確認を伝える'
+                DATA : 'complete_info'
+                RET : '荷物の情報の確認が完了したことをお伝えします、少々お待ちください'
+M4 : 
+        LEN : 2
+        TITLE : 'お礼'
+        DESCRIPTION : '心を込めて感謝を伝える'
+        TYPE1 :
+                TEXT : 'ありがとう'
+                DATA : 'thanks'
+                RET : '心を込めてお礼を伝えておきます'
+        TYPE2 :
+                TEXT : 'いつも、ありがとう'
+                DATA : 'every_thanks'
+                RET : '真心を込めて、感謝の気持ちを伝えておきます'
