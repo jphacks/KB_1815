@@ -1,18 +1,29 @@
 from argparse import ArgumentParser
+from pathlib import Path
 import time
 import numpy as np
 import cv2
+from datetime import datetime
 import requests
 
-DIFF_THRESHOLD = 20
+DIFF_THRESHOLD = 30
 DEFFAULT_SLEEP = 1
-END_POINT = 'http://163.221.126.25:3000/detection'
+LINE_ENDPOINT = 'https://uketori.herokuapp.com/important'
+VISION_ENDPOINT = 'https://southcentralus.api.cognitive.microsoft.com/customvision/v2.0/Prediction/2d6dff05-36fb-493e-a387-1093bbbb175b/image'
+TMP_DIR = Path('../../src/public/images/')
 
-def detect_diff(
-        img_before: 'np.ndarray',
-        img_after: 'np.ndarray',
-        diff_threthold: int=DIFF_THRESHOLD,
-) -> bool:
+vision_headers = {
+    'Prediction-Key': '',
+    'Content-Type': 'application/octet-stream',
+    'Prediction-Key': '4fdd8e3729b04880af66cdb52d0b5c73',
+}
+
+line_headers = {'Content-Type': 'application/json'}
+
+IMPORTANT_TAG = 'important'
+NOT_IMPORTANT_TAG = 'not_important'
+
+def detect_diff(img_before, img_after, diff_threthold=DIFF_THRESHOLD):
     '''
     detect difference between two images.
 
@@ -32,12 +43,13 @@ def detect_diff(
     return mean_diff > diff_threthold
 
 
-def main(
-        cam_device: int=0,
-        end_point: str=END_POINT,
-) -> None:
+def main(cam_device=0):
+    if not TMP_DIR.exists():
+        TMP_DIR.mkdir(parents=True)
+
     cap = cv2.VideoCapture(cam_device)
     frame = None
+
     while True:
         frame_before = frame
         ret, frame = cap.read()
@@ -50,8 +62,23 @@ def main(
         diff = detect_diff(frame_before, frame)
 
         if diff:
-            #print(True)
-            requests.get(end_point)
+            print(True)
+            now_time = datetime.now().strftime('%Y%m%d%H%M%S')
+            target_name = '%s/%s.jpg' % (str(TMP_DIR), now_time)
+            cv2.imwrite(target_name, frame)
+
+            r =requests.post(
+                VISION_ENDPOINT,
+                data=open(target_name, "rb"),
+                headers=vision_headers
+            ).json()
+
+            results = r['predictions']
+            result_tag = results[0]['tagName']
+            print(result_tag)
+            if result_tag == IMPORTANT_TAG:
+                payload = {'result': '%s.jpg' % now_time}
+                requests.post(LINE_ENDPOINT, data=json.dumps(payload), header=line_headers)
 
         time.sleep(DEFFAULT_SLEEP)
 
@@ -59,6 +86,5 @@ def main(
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--cam_device', type=int, default=0)
-    parser.add_argument('--end_point', type=str, default=END_POINT)
     args = parser.parse_args()
-    main(args.cam_device, args.end_point)
+    main(args.cam_device)
