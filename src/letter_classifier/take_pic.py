@@ -50,6 +50,7 @@ def main(
         diff = detect_diff(frame_before, frame)
 
         if diff:
+            #print(True)
             requests.get(end_point)
 
         time.sleep(DEFFAULT_SLEEP)
@@ -57,7 +58,7 @@ def main(
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('--cam_device', default=0)
-    parser.add_argument('--end_point', default=END_POINT)
+    parser.add_argument('--cam_device', type=int, default=0)
+    parser.add_argument('--end_point', type=str, default=END_POINT)
     args = parser.parse_args()
     main(args.cam_device, args.end_point)
