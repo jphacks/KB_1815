@@ -1,11 +1,36 @@
 const express = require('express')
+const bodyParser = require('body-parser')
 const app = express()
 const portNo = 3000
 const raspi = require('raspi');
 const pwm = require('raspi-pwm');
-const record = require('./lib/recorder.js')
+require('date-utils');
+const childProcess = require('child_process');
 
+app.get('/photo', (req, res, next) => {
+  const dt = new Date();
+  const formatted = dt.toFormat("YYYYMMDDHH24MISS");
+  childProcess.exec(`fswebcam ./public/images/${formatted}.jpg`, (error, stdout, stderr) => {
+    if(error) {
+      console.log(stderr);
+      return;
+    }
+    else {
+      console.log("success");
+    }
+  const param = {"result": `${formatted}.jpg`};
+  res.header('Content-Type', 'application/json; charset=utf-8')
+  res.send(param);
+  })
+})
+
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+
+app.use(bodyParser.json());
 app.set('view engine', 'ejs');
+app.use(express.static('public'));
 
 app.get('/', (req, res, next) => {
   res.render("index")
@@ -20,12 +45,33 @@ app.post('/close', (req, res, next) => {
   led.write(0.13);
   res.send('closed')
 })
+
+
+
+app.post('/sound', (req, res, next) => {
+  console.log(req.body);
+  let before = req.body.before
+  let after = req.body.after
+  childProcess.exec(`python ./okmt/rename.py ${before}.mp3 ${after}.mp3 &`, (error, stdout, stderr) => {
+  if(error) {
+    console.log(stderr);
+    return;
+  }
+  else {
+    console.log("success");
+  }
+});
+
+})
+
+app.get('/call', (req, res, next) => {
+  childProcess.exec('aplay -D plughw:1,0 ../resources/call.wav')
+})
  
 raspi.init(() => {
   led = new pwm.PWM('GPIO18');
   app.listen(portNo, () => {
-  console.log('起動しました', `http://192.168.100.125:${portNo}`)
+  console.log('起動しました', `http://163.221.126.28:${portNo}`)
   })
 });
 
-record.record("delivery.wav")

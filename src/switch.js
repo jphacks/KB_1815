@@ -4,6 +4,8 @@ var GPIO_DIR = '/sys/class/gpio';
 var GPIO_PIN_DIR = GPIO_DIR + '/gpio';
 var PIN_LIST = [];
 const Sound = require('node-aplay');
+require('date-utils');
+const childProcess = require('child_process');
 
 //使用したGPIOポートの開放
 var cleanUp = function() {
@@ -62,11 +64,34 @@ try {
  			count += 1;
                         setOutput(8, '1');
 			if (count === 1) {
-			  new Sound('../resources/askyou.wav').play();
- 			  request.post('https://609e058f.ngrok.io/button_on', function (error, response, body) {
-                          console.log('ok')})
-			}
-                } else {
+		          childProcess.exec('aplay -D plughw:1,0 public/resources/pinpon.wav') 
+                          setTimeout(() => {
+			  childProcess.exec('aplay -D plughw:1,0 ../resources/start.wav')}, 2000);
+			  // const dt = new Date();
+                          // const formatted = dt.toFormat("YYYYMMDDHH24MISS");
+                          childProcess.exec(`fswebcam ./public/images/comehome.jpg`, (error, stdout, stderr) => {
+                          if(error) {
+                            console.log(stderr);
+                            return;
+                          }
+                          else {
+                           console.log("success");
+                          }
+                        });
+
+                        const options = {
+                          uri: "https://uketori.herokuapp.com/notify",
+                          headers: {
+                            "Content-Type": "application/json"
+                          },
+                          json: {
+                            "result": "comehome.jpg"
+                          }
+                        };
+ 			request.post(options, function (error, response, body) {
+                          console.log('ok')
+                        });}
+                        } else {
                         //スイッチが離された状態
                         setOutput(8, '0');
                 }
