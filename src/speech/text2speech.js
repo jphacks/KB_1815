@@ -4,14 +4,13 @@ const textToSpeech = require('@google-cloud/text-to-speech');
 
 // Creates a client
 const client = new textToSpeech.TextToSpeechClient();
-
 // Performs the Text-to-Speech request
 // fileName: xxx.wav
 function text2speech(text, fileName) {
     const request = {
-        input: { text: text },
+        input: { ssml: text },
         // Select the language and SSML Voice Gender (optional)
-        voice: { languageCode: 'ja-JP', ssmlGender: 'NEUTRAL' },
+        voice: { languageCode: 'ja-JP', ssmlGender: 'MALE' },
         // Select the type of audio encoding
         audioConfig: { audioEncoding: 'LINEAR16' },
         sampleRateHertz: 44100
@@ -33,4 +32,7 @@ function text2speech(text, fileName) {
     });
 }
 
-exports.text2speech = text2speech;
+text2speech('<speak>ねえクローバ<break time="1s"/>うけとりを起動して</speak>', '../resources/start.wav')
+text2speech('ねえクローバ,パパに電話をかけて', '../resources/call.wav')
+
+// exports.text2speech = text2speech;

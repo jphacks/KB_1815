@@ -1,0 +1,35 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[scripts]
+test = "python -m pytest -vv"
+jupyter = "jupyter notebook"
+get_coverage = "python -m pytest --cov=./"
+#codecov = 'codecov --token=""'
+
+[packages]
+PyYAML = "*"
+requests = "*"
+flask = "*"
+line-bot-sdk = "*"
+rpi = {git = "https://github.com/nosix/raspberry-gpio-emulator/"}
+pyzbar = "*"
+flask-bootstrap = "*"
+fastzbarlight = "*"
+"boto3" = "*"
+zappa = "*"
+
+[dev-packages]
+codecov = "*"
+flake8 = "*"
+mypy = "*"
+jupyter = "*"
+pytest = "*"
+pytest-cov = "*"
+pylint = "*"
+"autopep8" = "*"
+
+[requires]
+python_version = "3.6.5"

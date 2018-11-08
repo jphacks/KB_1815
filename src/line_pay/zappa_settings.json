@@ -1,0 +1,10 @@
+{
+    "dev": {
+        "app_function": "app.app",
+        "aws_region": "ap-northeast-1",
+        "profile_name": "default",
+        "project_name": "line-pay",
+        "runtime": "python3.6",
+        "s3_bucket": "zappa-iaya9v136"
+    }
+}
