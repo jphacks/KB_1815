@@ -64,9 +64,12 @@ try {
  			count += 1;
                         setOutput(8, '1');
 			if (count === 1) {
-                        const dt = new Date();
-                        const formatted = dt.toFormat("YYYYMMDDHH24MISS");
-                        childProcess.exec(`fswebcam ./public/images/${formatted}.jpg`, (error, stdout, stderr) => {
+		          childProcess.exec('aplay -D plughw:1,0 public/resources/pinpon.wav') 
+                          setTimeout(() => {
+			  childProcess.exec('aplay -D plughw:1,0 ../resources/start.wav')}, 2000);
+			  // const dt = new Date();
+                          // const formatted = dt.toFormat("YYYYMMDDHH24MISS");
+                          childProcess.exec(`fswebcam ./public/images/comehome.jpg`, (error, stdout, stderr) => {
                           if(error) {
                             console.log(stderr);
                             return;
@@ -82,7 +85,7 @@ try {
                             "Content-Type": "application/json"
                           },
                           json: {
-                            "result": `${formatted}.jpg`
+                            "result": "comehome.jpg"
                           }
                         };
  			request.post(options, function (error, response, body) {

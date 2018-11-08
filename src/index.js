@@ -65,7 +65,7 @@ app.post('/sound', (req, res, next) => {
 })
 
 app.get('/call', (req, res, next) => {
-  childProcess.exec('mpg321 ./public/resources/call.mp3')
+  childProcess.exec('aplay -D plughw:1,0 ../resources/call.wav')
 })
  
 raspi.init(() => {
