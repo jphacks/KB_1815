@@ -1,11 +1,14 @@
 from func import *
 
-@app.route("/notify", methods=['POST'])
-def notify():
+
+@app.route("/important", methods=['POST'])
+def important():
+    post2admin('重要な書類が届きました')
     data = request.data.decode('utf-8')
     data = json.loads(data)
-    path = ENDPOINT['RASPI2'] + '/images/' + data['result']
+    path = ENDPOINT['RASPI1'] + '/images/' + data['result']
     postimage2one(path)
+    poststamp('11537','52002741')
 
 @app.route("/who", methods=['POST'])
 def who(body):
@@ -100,13 +103,10 @@ def callback():
                         talkmode_switch()
                 
                 elif (text == "電話をつないで"):
-                        call()
+                        ask_call(ID)
         
                 elif (text == "スナップショット"):
-                        res = snap_shot()
-                        data = res.json()
-                        path = ENDPOINT['RASPI2'] + '/images/' + data['result']
-                        postimage2one(path,ID)
+                        ask_snap_shot(ID)
         
                 elif (text == "決済"):
                     post2one('https://733bc45e.ngrok.io/reserve', ID)
@@ -114,7 +114,10 @@ def callback():
                     if (text=="対話モードオフ"):
                         talkmode_switch()
                 else:
-                    if(text == "ピンポン"):
+                    if(text in ['はい','いいえ']):
+                        None
+
+                    elif(text == "ピンポン"):
                         notification("佐川男子")
                     else:
                         post2one("意味がわかりません", ID)
@@ -132,29 +135,42 @@ def callback():
                     post2admin(TALK_TEMPLETE['M1']['TYPE2']['RET'])
                     overwride(TALK_TEMPLETE['M1']['TYPE2']['DATA'],'default')
                 
-                if(data == TALK_TEMPLETE['M2']['TYPE1']['DATA']): #'get_QR'
+                elif(data == TALK_TEMPLETE['M2']['TYPE1']['DATA']): #'get_QR'
                     post2admin(TALK_TEMPLETE['M2']['TYPE1']['RET'])
+                    poststamp(11537,52002736,ID)
                     overwride(TALK_TEMPLETE['M2']['TYPE1']['DATA'],'default')
                 
+                elif(data == TALK_TEMPLETE['M2']['TYPE2']['DATA']): #'get_info'
+                    post2admin(TALK_TEMPLETE['M2']['TYPE2']['RET'])
+                    poststamp(11537,52002736,ID)
+                    overwride(TALK_TEMPLETE['M2']['TYPE2']['DATA'],'default')
+                
                 elif(data == TALK_TEMPLETE['M3']['TYPE1']['DATA']): #'complete_pay'
-                    ask_open_key(ID)
-                    post2admin(TALK_TEMPLETE['M3']['TYPE1']['RET'])
+                    complete_pay()
+                    poststamp(11537,52002741,ID)
                     overwride(TALK_TEMPLETE['M3']['TYPE1']['DATA'],'default')
+                
+                elif(data == TALK_TEMPLETE['M3']['TYPE2']['DATA']): #'complete_info'
+                    complete_info()
+                    poststamp(11537,52002741,ID)
+                    overwride(TALK_TEMPLETE['M3']['TYPE2']['DATA'],'default')
                 
                 elif(data == TALK_TEMPLETE['M4']['TYPE1']['DATA']): #'thanks'
                     post2admin(TALK_TEMPLETE['M4']['TYPE1']['RET'])
+                    poststamp(11537,52002741,ID)
                     overwride(TALK_TEMPLETE['M4']['TYPE1']['DATA'],'default')
                 
                 elif(data == TALK_TEMPLETE['M4']['TYPE2']['DATA']): #'every_thanks'
                     post2admin(TALK_TEMPLETE['M4']['TYPE2']['RET'])
+                    poststamp(11537,52002741,ID)
                     overwride(TALK_TEMPLETE['M4']['TYPE2']['DATA'],'default')
         
                 elif(data == "line telephone call"):
                     post2admin("LINE通話を開始します")
-                    call()
+                    call(ID)
         
                 elif(data == "line talk"):
-                    post2admin("LINEでやり取りをします")
+                    post2admin("承知しました")
                     poststamp(11537, 52002741, ID)
                     template_response(ID)
                     hatsuwa_flag = True
@@ -166,7 +182,29 @@ def callback():
                 elif(data == "ask requirements"):
                     print("要件を訪ねます")
                     post2one("要件を訪ねます", ID)
+                
+                elif(data == "start call"):
+                    try:
+                        call(ID)
+                        post2one("通話を開始します", ID)
+                    except:
+                        post2one("通話に失敗しました", ID)
         
+                elif(data == "snap shot"):
+                    try:
+                        send_snap_shot(ID)
+                        post2one("撮影しました", ID)
+                    except:
+                        post2one("撮影に失敗しました", ID)
+                
+                elif(data == "uketori_open key"):
+                    try:
+                        open_key()
+                        post2one("開錠しました", ID)
+                        template_response(ID)
+                    except:
+                        post2one("開錠に失敗しました", ID)
+                
                 elif(data == "open key"):
                     try:
                         open_key()
@@ -174,7 +212,15 @@ def callback():
                     except:
                         post2one("開錠に失敗しました", ID)
 
+                elif(data == "complete close key"):
+                    try:
+                        close_key()
+                        post2one("施錠しました", ID)
+                        template_response(ID)
+                    except:
+                        post2one("施錠に失敗しました", ID)
         
+
                 elif(data == "close key"):
                     try:
                         close_key()
@@ -269,16 +315,19 @@ def show(clova_request):
         
     else:
         try:
+            print('かざした')
             res = snap_shot()
             res.json()
             data = res.json()
-            image_path = ENDPOINT['RASPI2'] + '/images/' + data['result']
+            print('写真のデータ',data['result'])
+            #image_path = ENDPOINT['RASPI2'] + '/images/' + data['result']
+            image_path = ENDPOINT['RASPI2'] + '/images/' + 'yarakasi.png'
             qr2url(image_path)
             template_response()
             show = cek.Message(message = CLOVA_RES['SHOW'], language="ja")
             on_hold = cek.URL(ENDPOINT['RASPI2'] + "/resources/on_hold.mp3")
             default = cek.URL(ENDPOINT['RASPI2'] + "/resources/default.mp3")
-            response = clova.response([show, on_hold, default])
+            response = clova.response([show, on_hold, on_hold, default])
             return response
         except:
             show_again = cek.Message(message = CLOVA_RES['SHOW_AGAIN'], language="ja")
@@ -296,7 +345,6 @@ def complete(clova_request):
         response = clova.response([plese_show])
     else:
         complete_res()
-        template_response()
         complete = cek.Message(message = CLOVA_RES['COMPLETE'], language="ja")
         on_hold = cek.URL(ENDPOINT['RASPI2'] + "/resources/on_hold.mp3")
         default = cek.URL(ENDPOINT['RASPI2'] + "/resources/default.mp3")
@@ -312,7 +360,7 @@ def re_delivery(clova_request):
         return response
     else:
         day = clova_request.slot_value('day_slot')
-        post2admin(' ご主人様がお忙しそうだったので伝言をうけトリました！')
+        post2admin(' パパがお忙しそうだったので伝言をうけトリました！')
         post2admin(day + '、再配達に来るそうです')
         poststamp('11537','52002736')
         tell = cek.Message(message = day + CLOVA_RES['TELL'], language="ja")
