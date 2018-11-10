@@ -3,8 +3,7 @@ import os
 import requests
 import json
 from flask import Flask, request,jsonify
-from linebot import (
-    LineBotApi,
+from linebot import ( LineBotApi,
     WebhookHandler
 )
 from linebot.models import (
@@ -14,6 +13,7 @@ from linebot.models import (
 )
 
 from util import config_loader
+import io
 
 app = Flask(__name__)
 
@@ -74,14 +74,19 @@ def overwride(before,after):
 def beacon_action(action, ID):
     if(action == "enter"):
         print("becon,enter")
-        if(ID in USER_ID):
-            name = USER_ID[ID]
-            # to ADMIN
-            post2admin(name + "が帰宅しました")
-            post2stamp('11537','52002741')
-            # to YOUSER
-            post2one("おかえりなさい、待ってたよ！！", ID)
-            post2stamp('11537','52002736',ID)
+        if(ID in USER_LIST):
+            name = USER_LIST[ID]
+            if(ID != ADMIN_ID):
+                # to ADMIN
+                post2admin(name + "が帰宅しました")
+                poststamp('11537','52002741')
+                # to YOUSER
+                post2one("おかえりなさい、待ってたよ！！", ID)
+                poststamp('11537','52002736',ID)
+            else:
+                # to ADMIN
+                post2one(name + "おかえりなさいませ。今日は荷物が届いていますよ。", ID)
+                poststamp('11537','52002736',ID)
 
     else:
         print("becon,leave")
@@ -89,7 +94,7 @@ def beacon_action(action, ID):
             name = USER_LIST[ID]
             # to ADMIN
             post2admin(name + "がおでかけみたいです")
-            post2stamp('11537','52002741')
+            poststamp('11537','52002741')
             # to YOUSER
             post2one("行ってらっしゃい！良い1日になりますように", ID)
             poststamp('11537','52002736',ID)
@@ -201,6 +206,8 @@ def post2others(post_text, ID):
     )
 
 def notification(name, ID=ADMIN_ID):
+    path = ENDPOINT['RASPI2'] + '/images/' + 'comehome.jpg'
+    postimage2one(path,ID)
     data = {
         "to": ID,
         "messages": [
@@ -214,16 +221,19 @@ def notification(name, ID=ADMIN_ID):
                         {
                             "type": "postback",
                             "label": "電話をつなぐ",
+                            "text": "電話をつないで",
                             "data": "line telephone call",
                         },
                         {
                             "type": "postback",
                             "label": "LINEで対応",
+                            "text": "LINEで対応します",
                             "data": "line talk",
                         },
                         {
                             "type": "postback",
                             "label": "対応不可",
+                            "text": "今はいそがしいです",
                             "data": "impossible",
                         }
                     ]
@@ -252,12 +262,14 @@ def ask_close_key(ID):
                     "actions": [
                         {
                             "type": "postback",
-                            "label": "Yes",
+                            "label": "はい",
+                            "text": "はい",
                             "data": "close key",
                         },
                         {
                             "type": "postback",
-                            "label": "No",
+                            "label": "いいえ",
+                            "text": "いいえ",
                             "data": "keep key",
                         }
                     ]
@@ -318,12 +330,14 @@ def ask_open_key(ID):
                     "actions": [
                         {
                             "type": "postback",
-                            "label": "Yes",
+                            "label": "はい",
+                            "text": "はい",
                             "data": "open key",
                         },
                         {
                             "type": "postback",
-                            "label": "No",
+                            "label": "いいえ",
+                            "text": "いいえ",
                             "data": "keep key",
                         }
                     ]
@@ -340,7 +354,6 @@ def ask_open_key(ID):
 
 def open_key():
     response = requests.post(ENDPOINT['RASPI2']+'/open')
-
     return(response)
 
 def close_key():
@@ -348,7 +361,7 @@ def close_key():
 
     return(response)
 
-def send_first_message(ID):
+def send_first_message(ID=ADMIN_ID):
     data = {
         "to": ID,
         "messages": [
@@ -381,10 +394,11 @@ def send_first_message(ID):
     )
 
 
-def template_response(ID):
+def template_response(ID = ADMIN_ID):
+    print('aa')
     columns = [
         {    
-            "thumbnailImageUrl": IMAGE_FILES['TEMPLATE_RESPONSE'],
+            "thumbnailImageUrl": ENDPOINT['RASPI2'] + '/images/' +TALK_TEMPLETE['M' + str(num + 1)]['PHOTO'] ,
             "imageBackgroundColor": "#FFFFFF",
             "title": TALK_TEMPLETE['M' + str(num + 1)]['TITLE'],
             "text": TALK_TEMPLETE['M' + str(num + 1)]['DESCRIPTION'],
@@ -426,42 +440,90 @@ def template_response(ID):
         data=json.dumps(data),
     )
 
+def ask_call(ID):
+    data = {
+        "to": ID,
+        "messages": [
+            {
+                "type": "template",
+                "altText": "スナップショットのテンプレート",
+                "template": {
+                    "type": "buttons",
+                    "text": "LINE通話を始めますか？",
+                    "actions": [
+                        {
+                            "type": "postback",
+                            "label": "はい",
+                            "text": "はい",
+                            "data": "start call",
+                        },
+                        {
+                            "type": "postback",
+                            "label": "いいえ",
+                            "text": "いいえ",
+                            "data": "no",
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+
+    requests.post(
+        ENDPOINT['PUSH_URL'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
+def ask_snap_shot(ID):
+    data = {
+        "to": ID,
+        "messages": [
+            {
+                "type": "template",
+                "altText": "スナップショットのテンプレート",
+                "template": {
+                    "type": "buttons",
+                    "text": "撮影しますか？",
+                    "actions": [
+                        {
+                            "type": "postback",
+                            "label": "はい",
+                            "text": "はい",
+                            "data": "snap shot",
+                        },
+                        {
+                            "type": "postback",
+                            "label": "いいえ",
+                            "text": "いいえ",
+                            "data": "no",
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+
+    requests.post(
+        ENDPOINT['PUSH_URL'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
+
 def snap_shot():
-    response = requests.get(ENDPOINT['RASPI2'] + '/photo')
-    return(response)
+    res = requests.get(ENDPOINT['RASPI2'] + '/photo')
+    return(res)
+
+def send_snap_shot(ID):
+    res = requests.get(ENDPOINT['RASPI2'] + '/photo')
+    data = res.json()
+    path = ENDPOINT['RASPI2'] + '/images/' + data['result']
+    postimage2one(path,ID)
 
 def LINE_PAY():
     response = requests.get(ENDPOINT['LINE_PAY'])
     return(response)
 
 def complete_res():
-   # action = [
-   #     {
-   #       "type": "postback",
-   #       "label": TEMPLETE['COMPLETE']['LABEL' + str(num + 1)],
-   #       "data": TEMPLETE['COMPLETE']['DATA' + str(num + 1)],
-   #     } for num in range(TEMPLETE['COMPLETE']['LEN'])
-   # ]
-   # data = {
-   #     "to":ADMIN_ID,
-   #     "messages":[
-   #     {
-   #         "type": "template",
-   #         "altText": "決済完了後のテンプレート",
-   #         "template": {
-   #             "type": "buttons",
-   #             "text": TEMPLETE['COMPLETE']['TITLE'],
-   #             "actions":action            
-   #         }
-   #     }
-   #     ]
-   # }
-   # requests.post(
-   #     ENDPOINT['PUSH_URL'],
-   #     headers=HEADER,
-   #     data=json.dumps(data),
-   # )
-   # print(TEMPLETE['COMPLETE'])
     data = {
         "to":ADMIN_ID,
         "messages":[
@@ -475,11 +537,13 @@ def complete_res():
                     {
                       "type": "postback",
                       "label":"はい",
-                      "data" : "close key",
+                      "text":"はい",
+                      "data" : "complete close key",
                     },
                     {
                       "type": "postback",
                       "label":"いいえ",
+                      "text":"いいえ",
                       "data": "no",
                     }
                 ]
@@ -527,6 +591,7 @@ def talkmode_switch():
     )
 
 def qr2url(image_path):
+    print('post_qr_api')
     datas = {'image_path':str(image_path)}
     res = requests.post(
             ENDPOINT['QR2URL'],
@@ -538,8 +603,77 @@ def qr2url(image_path):
     url = data['url']
     post2admin(url)
 
-def call():
+def call(ID):
     print('call')
     response = requests.get(ENDPOINT['RASPI2']+'/call')
     return(response)
+
+def complete_info(ID = ADMIN_ID):
+    data = {
+        "to":ID,
+        "messages":[
+        {
+            "type": "template",
+            "altText": "確認完了",
+            "template": {
+                "type": "buttons",
+                "text":  "情報の確認が完了したことをお伝えして、荷物をうけトリます。開錠してもよろしいですか？",
+                "actions": [
+                    {
+                      "type": "postback",
+                      "label":"はい",
+                      "text":"はい",
+                      "data" : "open key",
+                    },
+                    {
+                      "type": "postback",
+                      "label":"いいえ",
+                      "text":"いいえ",
+                      "data": "no",
+                    }
+                ]
+            }
+        }
+        ]
+    }
+    requests.post(
+        ENDPOINT['PUSH_URL'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
+def complete_pay(ID = ADMIN_ID):
+    data = {
+        "to":ID,
+        "messages":[
+        {
+            "type": "template",
+            "altText": "支払い完了",
+            "template": {
+                "type": "buttons",
+                "text":  "決済が完了したことをお伝えして、荷物をうけトリます。開錠してもよろしいですか？",
+                "actions": [
+                    {
+                      "type": "postback",
+                      "label":"はい",
+                      "text":"はい",
+                      "data" : "open key",
+                    },
+                    {
+                      "type": "postback",
+                      "label":"いいえ",
+                      "text":"いいえ",
+                      "data": "no",
+                    }
+                ]
+            }
+        }
+        ]
+    }
+    requests.post(
+        ENDPOINT['PUSH_URL'],
+        headers=HEADER,
+        data=json.dumps(data),
+    )
+
+
 
