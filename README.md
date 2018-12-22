@@ -1,6 +1,6 @@
 # うけトリ
 
-[![Product Name](image.png)](https://www.youtube.com/watch?v=ot3gk7UPOKg&feature=youtu.be)
+[![Product Name](image.png)](https://www.youtube.com/watch?v=kfd1oxzmzOM)
 
 ## 製品概要
 ### 宅配 × Tech
